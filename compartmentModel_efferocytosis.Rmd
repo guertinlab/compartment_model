@@ -1,0 +1,135 @@
+---
+title: \sf Compartmental Modeling workflow (efferocytosis data, Summer 2022)
+header-includes:
+- \usepackage{color}
+- \usepackage{float}
+- \DeclareUnicodeCharacter{2212}{-}
+author: Rudradeep Mukherjee
+date: "June 13, 2022"
+output:
+  bookdown::html_document2:
+    toc: true
+fontsize: 14.5pt
+geometry: margin=0.3in
+---
+\sffamily
+
+# Introduction
+
+This document records steps to run compartment model (Sathayan et. al. 2018, Dutta et. al. 2021.) The experimental data belonged to an efferocytosis model - where mouse macrophages engulfed an apoptotic human cell, and samples were collected at 0 min (control, no apoptosis), 45 min and 90 min for PRO-seq.
+
+# Annotation of start and end coordinates of all known genes
+
+We used *primaryTranscriptAnnotation* (pTA) ([add references]) to annotate the earliest detectable transcription start site and most extreme transcription termination site for all genes. The vignette and the manual for pTA are present in:  
+https://github.com/WarrenDavidAnderson/genomicsRpackage/tree/master/primaryTranscriptAnnotation.  
+Referring `primaryTranscriptAnnotation-vignette.pdf`, we followed upto Section 5 (page 8) and chose not to use gro-HMM as it is not part of our standard workflow. For genes which were not initially detected by *pTA* flow in our data, we used the gene coordinates from largest.interval.bed (see code below) created by *pTA* from the standard GENCODE annotation file.
+
+```{r, engine='bash', comment=''}
+cat primTranscript/primTrnscrptAnnot.R # the file with the contents below
+``` 
+We will use the gene coordinates in `mastercoords.bed` file to find differentially expressed genes between different conditions - 45min vs control, 90min vs control and 90min vs 45min.
+
+# Differential expression using DESeq2
+First, we need to find the read counts in the regions defined by `mastercoords.bed`.  
+
+## Coverage data using `bedtools coverage`:
+We used `mastercoords.bed` to generate "merged counts" file as outlined in "Differential expression with DESeq2" section of Nascent RNA methods:  
+https://github.com/guertinlab/Nascent_RNA_Methods.  
+```{r, engine='bash',  comment=''}
+cat deseq2/deseq2DataCreator.sh # the file with the contents below 
+``` 
+We use `Macrophages_PRO_gene_counts_pTA.txt` to run DESeq2 analysis.  
+
+## Running DESeq2
+The data concatenated as `Macrophages_PRO_gene_counts_pTA.txt` had a specific order from left to right. (This file should be opened and order of columns should be verified.) The same order of columns is used to define the condition names and levels in the following code.
+```{r, engine='bash',  comment=''}
+cat deseq2/runDeseq2.R # the file with the contents below
+```
+We now have the desired objects containing activated genes in each comparison of our interest. These objects will provide us with reference genes when we want to estimate signals at pause regions and gene body in comparisons of our interest.  
+
+## Estimate signals at pause and gene body
+First, we need to create normalized bigWigs which contain Pol II signal averaged by mean signal within and across replicates.  
+
+### Creating normalized bigWigs
+We will use `PRO_normalization`, `normalization_factor.R` and `normalized_bedraph.py` scripts ([Nascent RNA Methods, Guertin Lab](https://github.com/guertinlab/Nascent_RNA_Methods)) modified accordingly for our purpose.
+```{r, engine='bash',  comment=''}
+cat primTranscript/PRO_normalization_v2 # the file with the contents below
+```
+`normalization_factor_v2.R` and `normalized_bedraph_v2.py` referenced in code above are not shown here (due to slight modifications done to the original), but can be located in `primTranscript` folder.  
+
+### Creating objects with pause indices and body densities
+(This section of code may find another home on lab's Github repo.) Using the normalized bigWigs and deseq2 objects, we find estimates like pause sum, body density for genes (activated in our case) for various conditions.
+```{r, engine='bash',  comment=''}
+cat callers/run_pauseworkflow.R # the file with the contents below
+```
+The file `pause_workflow_funcs_v2.R` sourced above has been included in the `R` directory.  
+
+# Scanning parameters to reproduce empirical data using compartment model
+Now, that we have desired estimates from different conditions, we want to find parameters which reproduce changes between two conditions, say - condn2 and condn1 (baseline.)  
+The following code was derived from `vignette_compartment_modeling.pdf` present in `modeling PRO composites` [section](https://github.com/guertinlab/modeling_PRO_composites) of Guertin Lab repo.  
+We select a scanning range where each parameter changes by `1/fold` of its value to `fold` times of its value. We save the parameter sets and their outputs for subsequent use.
+
+```{r, engine='bash', comment=''}
+cat paramScanAndFit/paramScannerCompartmentModel.R # the file with the contents below
+```
+After our param scan is complete, we can now search for parameters which reproduce changes between two conditions. (It is advisable to separate/parallelise each category of comparisons for faster run times. The code includes all category of comparisons in a serialised manner, for recording purposes.)
+```{r, engine='bash', comment=''}
+cat paramScanAndFit/paramFittingCompartmentModel.R
+```
+The file `param_scanner_funcs.R` is present in the `R` directory. 
+Some param scans may reveal empty sets because none of the params satisfied our empirical data.  
+
+## Parameter scans in parallel using GNU MCSim and `pksensi` (R package)
+(This section is a work in progress and may be skipped without any loss of continuity.) The `solve_fun()` can be replaced by `solve_mcsim()` from `pksensi` package. It utlises GNU MCSim software to speed up processing by invoking code in parallel. The GNU MCSim software should be installed first (see comments in the following code for details.)
+```{r, engine='bash', comment=''}
+cat paramScanAndFit/paramScannerCompartmentModel_parallel.R
+```
+  
+# Plotting the parameters which satisfy empirical data
+Now, we have the param scans which satisfy the empiricial data in both baseline and condition.    
+```{r, engine='bash', comment=''}
+cat callers/plotParamSets.R
+```
+Out of these param sets from each comparisons, we select param set where we changed initiation rate (`kinit`) and pause release rate (`krel`), keeping premature release rate (`kpre`) and elongation rate (`kelong`) constant.  
+
+```{r, echo=FALSE, fig.cap="Param plots for 45min vs control case", out.width = '100%'}
+knitr::include_graphics("figures/efferocytosis.45minvcontrol_change_two_parameters.pdf")
+```
+```{r, echo=FALSE, fig.cap="Param plots for 90min vs control case", out.width = '100%'}
+knitr::include_graphics("figures/efferocytosis.90minvcontrol_change_two_parameters.pdf")
+```
+```{r, echo=FALSE, fig.cap="Param plots for 90min vs 45min case", out.width = '100%'}
+knitr::include_graphics("figures/efferocytosis.90minvs45min_change_two_parameters.pdf")
+```
+# Visualization of effects from change in initiation rate (`kinit`) and pause release (`krel`)
+From param sets in each condition, we select those having elongation rate (`kelong`) closest to 2500 bases/min ~ 41.667 bases/second. We take the height of pause peak and body region in both baseline and condition of interest, and try to fit a waveform that mimics PRO-seq signal.
+The files `param_scanner_funcs.R`, `dynamic_traces.R` and `plotting_composites_lattice.R` are present in `R` folder.  
+```{r, engine='bash', comment=''}
+cat callers/plot_simulation_composites.R  #file contents below
+```
+```{r, echo=FALSE, fig.cap="Simulated composites for 45min vs control", out.width = '100%'}
+knitr::include_graphics("figures/model_45min.0.min.composites.pdf")
+```
+```{r, echo=FALSE, fig.cap="Simulated composites for 90min vs control", out.width = '100%'}
+knitr::include_graphics("figures/model_90min.v.control.composites.pdf")
+```
+```{r, echo=FALSE, fig.cap="Simulated composites for 90min vs 45min", out.width = '100%'}
+knitr::include_graphics("figures/model_90min.v.45min.composites.pdf")
+```
+
+# Sensitivity analysis
+This section follows the sensitivity analysis (Section 2.3, page 15) section of compartment modeling vignette, derived from the workflow mentioned [here](https://cran.r-project.org/web/packages/pksensi/vignettes/pbtk1cpt.html). 
+```{r, engine='bash', comment=''}
+cat paramScanAndFit/paramSpaceDistribution.R # the file with the contents below
+```
+```{r, echo=FALSE, fig.cap="Sensitivity index for pause body density", out.width = '100%'}
+knitr::include_graphics("figures/pause_density_parameter_sensitivity_index.n45000.repl100.pdf")
+```
+```{r, echo=FALSE, fig.cap="Sensitivity index for body density", out.width = '100%'}
+knitr::include_graphics("figures/body_density_parameter_sensitivity_index.n45000.repl100.pdf")
+```
+
+
+
+
+
