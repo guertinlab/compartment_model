@@ -1,7 +1,36 @@
 library(bigWig)
+library(dplyr)
 library(zoo)
 library(lattice)
 library(stringr)
+library(GenomicRanges)
+
+## genecoords is the usual pTA file with gene start and body
+get_pause_window_Siepel <- function(genecoords) {
+        pauseFile = genecoords
+        pauseFile = subset(pauseFile, abs(end - start + 1) > 200)
+        pauseFile[pauseFile$strand == '-', ]$start = pauseFile[pauseFile$strand == '-', ]$end - 200
+        pauseFile[pauseFile$strand == '+', ]$end = pauseFile[pauseFile$strand == '+', ]$start + 200
+        gr <- GRanges(seqnames = Rle(pauseFile$chr),
+                      ranges = IRanges(start = pauseFile$start, end = pauseFile$end),
+                      strand = Rle(pauseFile$strand))
+        gr$gene_id = pauseFile$gene
+        gr$name = pauseFile$gene
+        return (gr)
+}
+## genecoords is the usual pTA file with gene start and body
+get_body_window_Siepel <- function(genecoords) {
+        bodyFile = genecoords
+        bodyFile = subset(bodyFile, abs(end - start + 1) >  1250)
+        bodyFile[bodyFile$strand == '-', ]$end = bodyFile[bodyFile$strand == '-', ]$end - 1250
+        bodyFile[bodyFile$strand == '+', ]$start = bodyFile[bodyFile$strand == '+', ]$start + 1250
+        gr <- GRanges(seqnames = Rle(bodyFile$chr),
+                      ranges = IRanges(start = bodyFile$start, end = bodyFile$end),
+                      strand = Rle(bodyFile$strand))                      
+        gr$gene_id = bodyFile$gene
+        gr$name = bodyFile$gene
+        return (gr)
+}
 
 ############################################################################################
 ## find.pause.regions
@@ -10,7 +39,7 @@ library(stringr)
 #' Get start, end coordinates of pause window and gene body for each gene using the bigWig files representing all conditions x replicates. The start and end coordinates are treated as transcription start site (TSS) and transcription termination site (TTS) respectively. The pause window has a 50bp size around the peak signal. The gene body starts from pause window end and ends at TTS. 
 #' @param bed.input A bed6 file containing genes of interest, where start and end are transcription start site and transciption termination site respectively.
 #' @param combined.plus.bw bigWig file for the plus strand data
-#' @param combined.minus.bw bigWig file for the minus strand data
+#' @paranputm combined.minus.bw bigWig file for the minus strand data
 #' @param upwardThreshold
 #' @return A bed6 file containing start, end coordinates of pause window (50bp in size), gene body () starting from seventh column.
 #' @export
@@ -20,7 +49,7 @@ library(stringr)
 #' df.pause.body <- find.pause.regions(pTA, bw.plus, bw.minus) # bw.* files are corresponding bigWig files.
 find.pause.regions <- function(bed.input,
                                combined.plus.bw,
-                               combined.minus.bw, searchWindow = 200) {
+                               combined.minus.bw, searchWindow = 200, rollingwindowsize = 50, bodyOffsetFromPause = 500) {
                                         #find TSS of each gene
     bed.input[,7] <- bed.input[,2] # set pause.start to start
     bed.input[bed.input[,6] == '-',7] <- bed.input[bed.input[,6] == '-',3] # set pause.start of '-' strand to end(-) of mastercoords.bed
@@ -43,7 +72,7 @@ find.pause.regions <- function(bed.input,
     dat.x = bed6.step.probeQuery.bigWig(combined.plus.bw, combined.minus.bw, tss.df, step = 1, abs.value=T,as.matrix = TRUE, op = "sum", follow.strand = FALSE)
     dat.x[is.na(dat.x)] <- 0
     # 50bp window rolling mean,
-    dat.x.win = t(apply(dat.x, 1, function(x){rollapply(x, width = 50, FUN = mean, by = 1, by.column = FALSE,align = "left")}))
+    dat.x.win = t(apply(dat.x, 1, function(x){rollapply(x, width = rollingwindowsize, FUN = mean, by = 1, by.column = FALSE,align = "left")}))
     index.max = apply(dat.x.win, 1, which.max)
     the.max = apply(dat.x.win, 1, max)
 
@@ -53,13 +82,13 @@ find.pause.regions <- function(bed.input,
     # set pause start column of + and - strands to existing starts + index.max of bed6.stepQuery
     pauseregion.df[2][pauseregion.df$strand == '-',] = pauseregion.df[2][pauseregion.df$strand == '-',] + index.max[pauseregion.df$strand == '-']
     pauseregion.df[2][pauseregion.df$strand == '+',] = pauseregion.df[2][pauseregion.df$strand == '+',] + index.max[pauseregion.df$strand == '+']
-    pauseregion.df[3] = pauseregion.df[2] + 50
+    pauseregion.df[3] = pauseregion.df[2] + rollingwindowsize
 
                                         #define 'body region' as end of pause region to the end of the gene (strand specific)
     body.df = bed.input[,c(1:4,7,6)]
     colnames(body.df) <- c('chr','start','end','gene','TSS','strand') 
-    body.df[body.df$strand == '+',2] = pauseregion.df[pauseregion.df$strand == '+',3]+1 # pause region end + 1
-    body.df[body.df$strand == '-',3] = pauseregion.df[pauseregion.df$strand == '-',2]-1 # pause region end - 1
+    body.df[body.df$strand == '+',2] = pauseregion.df[pauseregion.df$strand == '+',3]+bodyOffsetFromPause # pause region end + 1
+    body.df[body.df$strand == '-',3] =  pauseregion.df[pauseregion.df$strand == '-',2]-bodyOffsetFromPause # pause region end - 1
 
     final.df <- cbind(bed.input[,c(1:4,7,6)],pauseregion.df[,2:3],body.df[,2:3])
     colnames(final.df) <- c('chr','start','end','gene','TSS','strand','pause.start','pause.end','body.start','body.end')
@@ -131,6 +160,56 @@ total.region.density <- function(df.input,
     final.df$pause.index = final.df[,'pause.sum'] / final.df[,'body.avg']
 
     return(final.df)        
+}
+
+############################################################################################
+## find.density.across.windows
+############################################################################################
+
+#' @param df.input bed6 file created by [find.pause.regions()] containing the start and end of pause window and gene body for genes of interest.
+find.density.across.windows <- function(df.input,cond1.plus.bw, cond1.minus.bw, start_bp=0, end_bp=5000, windowsize_bp=200, stepsize_bp=50, useColnames=F) {
+    #isolate pause and body regions into their own objects
+    if (useColnames) {
+      #pauseregion.df <- df.input[,c("chr","pause.start","pause.end","gene","score","strand")]
+      body.df <- df.input[,c("chr", "body.start", "body.end", "gene", "score", "strand")] 
+    } else {
+      #pauseregion.df <- df.input[,c(1,7,8,4,5,6)] 
+      body.df <- df.input[,c(1,9,10,4,5,6)]
+    }
+    colnames(body.df) = c("chr", "body.start", "body.end", "gene", "score", "strand")
+    body.df.positive = subset(body.df, strand == "+")
+    body.df.negative = subset(body.df, strand == "-")
+    result_df = c()
+    currPosition = start_bp
+    while(currPosition <= end_bp) {
+       working.df.positive = subset(body.df, strand == "+" & body.end >= body.start + currPosition + windowsize_bp - 1)
+       working.df.negative = subset(body.df, strand == "-" & body.start <= body.end - (currPosition + windowsize_bp - 1))
+       if (nrow(working.df.positive) + nrow(working.df.negative)  < 10) {
+               print(sprintf("received %d (+) strand, %d (-) strand genes at start + %d, windowsize: %d. Stopping search", nrow(working.df.positive),  nrow(working.df.negative), currPosition, windowsize_bp))
+               break
+       }
+       # set body start and end for (+) ve stranded genes
+       working.df.positive$body.start = working.df.positive$body.start + currPosition
+       working.df.positive$body.end = working.df.positive$body.start + windowsize_bp - 1
+       # set body start and end for (-) ve stranded genes
+       working.df.negative$body.end = working.df.negative$body.end - currPosition
+       working.df.negative$body.start = working.df.negative$body.end - (windowsize_bp - 1) 
+
+       working.df.positive$body.avg = bed6.region.bpQuery.bigWig(cond1.plus.bw,cond1.minus.bw, working.df.positive, op = "avg", abs.value=T)
+       working.df.negative$body.avg = bed6.region.bpQuery.bigWig(cond1.plus.bw,cond1.minus.bw, working.df.negative, op = "avg", abs.value=T)
+       
+       working.df.positive$bpfromstart = currPosition
+       working.df.positive$bpend = currPosition + windowsize_bp - 1
+       working.df.negative$bpfromstart = currPosition
+       working.df.negative$bpend = currPosition + windowsize_bp - 1
+        
+       #working.df.positive$bpWindow = sprintf("%d_to_%d", currPosition, currPosition + windowsize_bp - 1)
+       #working.df.negative$bpWindow = sprintf("%d_to_%d", currPosition, currPosition + windowsize_bp - 1)
+       
+       result_df = rbind(result_df, working.df.positive, working.df.negative)
+       currPosition = currPosition + stepsize_bp
+    }
+    return(result_df) 
 }
 
 ############################################################################################
