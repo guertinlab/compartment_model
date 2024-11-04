@@ -1,0 +1,14 @@
+# S2 Heatshock - Duarte et al 2016
+https://genome.ucsc.edu/s/rmukherjee/Duarte_Droso_S2_HeatShock
+
+# TRP, FP treatment - Jonker et al 2014
+https://genome.ucsc.edu/s/rmukherjee/Jonkers_et_al_mm39_TRP_FP
+
+# ZNF143 dTAG trackhub - Dong et al 2024
+https://genome.ucsc.edu/s/rmukherjee/ZNF143_dTAG_trackhub
+
+# TBP dTAGv1 - Santana et al 2022
+https://genome.ucsc.edu/s/rmukherjee/Santana_price_TBP_dtagv1_hg38
+
+ 
+
