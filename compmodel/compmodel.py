@@ -750,7 +750,7 @@ def estparam(basename, basefile, exprname, exprfile, outputdir, conf, allgenesfi
             else: # norm == 'saturation':
                      pForNormalization = saturationValFromHyperTanFunc(allgenes_df['pause_sum'].values, basename, exprname, outputdir, percentileVals)
                      if pForNormalization == -1:
-                             sys.exit('saturation curve fit failed. You can alternatively use `--norm=percentile` for calculating a pause sum for normalization. Please see --help menu or vignette.')
+                             sys.exit('saturation curve fit failed. Please check if provided data has reasonable number of genes and densities are computed properly. You can alternatively use `--norm=percentile` for calculating a pause sum for normalization. Please see --help menu or vignette.')
                      #click.echo('From curve fit, saturation value of %0.2f will be used to normalize data' %(pForNormalization))
             baseline_df['pause_sum'] = baseline_df['pause_sum'] / pForNormalization
             baseline_df['body_density'] = baseline_df['body_density'] / pForNormalization
@@ -770,15 +770,32 @@ def estparam(basename, basefile, exprname, exprfile, outputdir, conf, allgenesfi
             if len(removedGenes) != 0:
                 click.echo(">> removed %d genes from run as they have zero pause sum or body density" % (len(removedGenes)))
             genes_with_zero_P = list(removedGenes)
-            dir_descrp = os.open(outputdir, os.O_RDONLY)
-            if len(genes_with_zero_P) != 0:
-                    zeroPauseFile = "{}/GeneswithZeroPauseSums_or_BodyAvg.txt".format(outputdir)
-                    with open(zeroPauseFile, 'w') as f:
-                            for gene in genes_with_zero_P:
-                                    print("%s" % gene, file = f)
-                    click.echo('>> Genes with pause sum or body avg as zero in either condition have been written to {}'.format(zeroPauseFile))
-            os.close(dir_descrp)
-
+            df_genes_zeroP = pd.DataFrame(genes_with_zero_P, columns=['Values'])
+            df_genes_zeroP.to_csv("{}/GeneswithZeroPauseSums_or_BodyAvg.txt".format(outputdir), index=False, header=False)
+            click.echo('>> Genes with pause sum or body avg as zero in either condition have been written to {}'.format("{}/GeneswithZeroPauseSums_or_BodyAvg.txt".format(outputdir)))
+            
+           # dir_descrp = os.open(outputdir, os.O_RDONLY)
+           # if len(genes_with_zero_P) != 0:
+           #         zeroPauseFile = "{}/GeneswithZeroPauseSums_or_BodyAvg.txt".format(outputdir)
+           #         with open(zeroPauseFile, 'w') as f:
+           #                 for gene in genes_with_zero_P:
+           #                         print("%s" % gene, file = f)
+           #         click.echo('>> Genes with pause sum or body avg as zero in either condition have been written to {}'.format(zeroPauseFile))
+           # os.close(dir_descrp)
+            ## discard genes with Pause Sum > 1
+            copy_baseline = baseline_df
+            copy_condition = condition_df
+            baseline_df = baseline_df.loc[(copy_baseline['pause_sum'] <= 1) & (copy_condition['pause_sum'] <= 1) ]
+            condition_df = condition_df.loc[(copy_baseline['pause_sum'] <= 1) & (copy_condition['pause_sum'] <= 1)]
+            baseline_df = baseline_df.reset_index(drop=True)
+            condition_df = condition_df.reset_index(drop=True)
+            removedGenes = set(copy_baseline['gene']).difference(baseline_df['gene'])
+            if len(removedGenes) != 0:
+                click.echo(">> removed %d genes from run as their pause sum exceeds the saturation value being used" % (len(removedGenes)))
+            genes_with_P_larger_1 = list(removedGenes)
+            df_genes_with_P_larger_1 = pd.DataFrame(genes_with_P_larger_1,  columns=['Values'])
+            df_genes_with_P_larger_1.to_csv("{}/GeneswithPauseSums_ExceedSaturationValue.txt".format(outputdir), index=False, header=False)
+            click.echo('>> Genes with pause sum exceeding saturation values, written to {}'.format("{}/GeneswithPauseSums_ExceedSaturationValue.txt".format(outputdir)))
             commandUsed = " ".join(sys.argv) 
             saveCmdFile = "{}/commandUsed.txt".format(outputdir)
             print(">> Received the command:\n{}\n>>".format(commandUsed))
