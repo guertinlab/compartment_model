@@ -1,0 +1,75 @@
+#! /bin/sh
+
+# modified from original code as file names are different: https://github.com/guertinlab/Nascent_RNA_Methods/blob/main/PRO_normalization
+
+# put this in your path: normalize_bedGraph.py
+# put this executable in your path: normalization_factor.R
+
+#normalization_factor_v2.R and normalize_bedGraph_v2.py are present in the same directory and they have been modifed accordingly.
+set -e
+module load R/4.1.2
+export PATH=${PATH}:/home/FCAM/rmukherjee/compartmentModel_project_datasets/Jonkers_et_al_2014 # for normalization_bedgraph_v2.py
+export PATH=${PATH}:/home/FCAM/rmukherjee/Summer2022Rotation/R_files # for bigWigToBedGraph
+while getopts "c:" OPTION
+do
+    case $OPTION in
+    c)
+        chrSizes=$OPTARG
+        ;;
+
+    esac
+done
+
+bigWigFilesDir=/home/FCAM/rmukherjee/compartmentModel_project_datasets/Jonkers_et_al_2014/fastqfiles
+
+cd ${bigWigFilesDir}
+
+if [ $chrSizes ]; then
+
+	Rscript /home/FCAM/rmukherjee/compartmentModel_project_datasets/Jonkers_et_al_2014/normalization_factor.R # modified version of normalization_factor.R from Guertin lab's GitHub
+        #for i in V65_cntrl_rep1_plus.bigWig V65_FP_treat_25min_rep1_plus.bigWig V65_TRP_treat_12min_rep1_plus.bigWig; # name modified
+        for i in V65_cntrl_rep1_plus.bigWig V65_TRP_treat_12min_rep1_plus.bigWig; # name modified
+          do
+	 	  name=$(echo $i | awk -F"_rep1_plus.bigWig" '{print $1}') # name modified
+	          printf "%s - processing individual replicates\n" ${name}
+		  basename=$(echo $i | awk -F"_" '{print $1}') 
+		  # count the number of replicates
+                  reps=$(ls ${name}_rep?_plus.bigWig | wc -w | bc) # modified name
+                  for j in ${name}_rep?_plus.bigWig; 
+		  do
+			      repNum=$(echo $j | awk -F"rep" '{print $NF}' | awk -F"_plus" '{print $1}') # take the num# of replicate 
+                              invscalePlus=$(grep "${name}_rep${repNum}_plus.bigWig" ${basename}_normalization.txt | awk -F" " '{print $2}' | bc)
+			      invscaleMinus=$(grep "${name}_rep${repNum}_minus.bigWig" ${basename}_normalization.txt | awk -F" " '{print $2}' | bc)
+			      echo $invscalePlus
+		              echo $invscaleMinus
+ 			      # scale to 10 million
+			      invScale=$(expr $invscalePlus + $invscaleMinus)
+	                      scale=$(bc <<< "scale=3 ; 10000000 / $invScale") # normalised to 1e7 reads
+		              bigWigToBedGraph ${name}_rep${repNum}_plus.bigWig ${name}_rep${repNum}_plus.bedGraph
+			      bigWigToBedGraph ${name}_rep${repNum}_minus.bigWig ${name}_rep${repNum}_minus.bedGraph
+	                      normalize_bedGraph_v2.py -i ${name}_rep${repNum}_plus.bedGraph -s $scale -o ${name}_rep${repNum}_plus_normalized.bedGraph
+		              normalize_bedGraph_v2.py -i ${name}_rep${repNum}_minus.bedGraph -s $scale -o ${name}_rep${repNum}_minus_normalized.bedGraph
+			      bedGraphToBigWig ${name}_rep${repNum}_plus_normalized.bedGraph $chrSizes ${name}_rep${repNum}_plus_normalized.bigWig 
+			      bedGraphToBigWig ${name}_rep${repNum}_minus_normalized.bedGraph $chrSizes ${name}_rep${repNum}_minus_normalized.bigWig
+		  done
+		  printf "%s - creating and merging normalized replicate bigWigs\n" ${name}
+		  plusfiles=$(ls ${name}_rep*_plus_normalized.bigWig)
+		  bigWigMerge $plusfiles tmpPlus.bg
+	          minusfiles=$(ls ${name}_rep*_minus_normalized.bigWig)
+	          bigWigMerge -threshold=-10000000000 $minusfiles tmpMinus.bg # for bigWigMerge utility: -threshold=0.N - don't output values at or below this threshold. Default is 0.0
+                  scaleall=$(bc <<< "scale=4 ; 1.0 / $reps")
+		  normalize_bedGraph_v2.py -i tmpPlus.bg -s $scaleall -o ${name}_plus_normalized.bg # scaleall=1/rep#
+	          normalize_bedGraph_v2.py -i tmpMinus.bg -s $scaleall -o ${name}_minus_normalized.bg
+	          sort -k1,1 -k2,2n ${name}_plus_normalized.bg > ${name}_plus_normalized_sorted.bg
+		  sort -k1,1 -k2,2n ${name}_minus_normalized.bg > ${name}_minus_normalized_sorted.bg
+		  bedGraphToBigWig ${name}_plus_normalized_sorted.bg $chrSizes ${name}_plus_normalized.bigWig 
+		  bedGraphToBigWig ${name}_minus_normalized_sorted.bg $chrSizes ${name}_minus_normalized.bigWig   
+	          rm ${name}_plus_normalized.bg
+		  rm ${name}_minus_normalized.bg
+		  rm ${name}_plus_normalized_sorted.bg
+		  rm ${name}_minus_normalized_sorted.bg
+	          rm tmpPlus.bg
+	          rm tmpMinus.bg
+	  done
+fi
+

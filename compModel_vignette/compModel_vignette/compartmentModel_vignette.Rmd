@@ -1,0 +1,279 @@
+---
+title: "compartment-model-vignette"
+output: rmarkdown::html_vignette
+bibliography: references.bib  
+csl: biomed-central.csl
+nocite: '@*'
+geometry: margin=0.3in
+vignette: >
+  %\VignetteIndexEntry{compartment-model-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+# Introduction
+
+This document describes steps to run compartment model (Mukherjee et al) on nascent transcript datasets to estimate changes in pause release and initiation. 
+
+# Getting Started
+
+## Installing the package
+
+Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. 
+We will install a python based package, `compartmentModel` currently hosted on [Test PyPI](https://test.pypi.org/project/compartmentModel/):-
+
+```{r, eval=FALSE}
+python3 -m pip install -i https://test.pypi.org/simple compartmentModel
+```
+
+After successful installation, the help menu can be accessed by running the following on command line:-
+```{r, eval=FALSE}
+polcomp estparam --help
+```
+
+## Inputs to the compartment model
+
+We need two tab-separated files from each of control and treatment conditions containing 'gene', 'pause_sum', 'body_density' for all genes of our interest. We also need a file containing pause sums of all expressed genes in baseline, in order to estimate an occupancy value (see Mukherjee et al). Please refer to the section `Preparation of Inputs` for detailed overview of creation of these files. For this example, we will use two files prepared from Triptolide treatment data (Jonkers et al. 2014):-
+
+```{r, engine='bash',  comment=''}
+head TRP125min_repressed_control_varlessthanpoint1.txt
+```
+```{r, engine='bash',  comment=''}
+head TRP125min_repressed_treatment_varlessthanpoint1.txt
+```
+## Running the model
+
+We will specify the inputs to our model as mentioned in the help message:-
+```{r, eval=FALSE}
+polcomp estparam --help
+```
+By default for parameter estimation, the lower and higher limits for premature termination (`Kpre`), pause release (`Krel`), initiation (`Kinit`) rates are 0.01 and 1 respectively, whereas lower and upper limits for elongation (`Kelong`) are 30 and 60. To demonstrate that these limits can be changed, we will use a config file to change the lower limit to `1e-8`. 
+```{r, engine='bash',  comment=''}
+cat TRP_UpperLimitFile
+```
+Note: In similar manner, the upper limit can be changed for any parameter by specifying `upper` value for the desired paramter, say premature termination rate. This is for demonstration and not being used in this section.:-
+```{r, eval=FALSE}
+[prematuretermination]
+lower = 0.02
+upper = 0.023
+```
+We will run the following command:-
+```{r, eval=FALSE}
+polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
+```
+At the end of the run, it should produce the following output (last few lines mentioned):-
+```{r, eval=FALSE}
+removed 625 genes from run as they have zero pause sum or body density
+Genes with pause sum or body avg as zero in either condition have been written to paramFit_TRP_EntireRange_percentile/GeneswithZeroPauseSums_or_BodyAvg.txt
+Received the command:
+polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
+writing command information to paramFit_TRP_EntireRange_percentile/commandUsed.txt
+> Estimated rates saved as paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
+```
+
+The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contain all the valid parameter sets for all the genes. The column names are self-explanatory and depend on the `basename` and `exprname` mentioned in the input command:-
+```{r, engine='bash',  comment=''}
+head paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
+```
+A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying/summarising the parameter sets mentioned in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
+
+# Preparation of Inputs
+
+## Processing of raw sequencing files
+We will be using Triptolide (TRP) treatment dataset from `Jonkers et al. 2014`. We will process the raw GRO-seq files from `control` and `TRP 12.5min` conditions. Mouse V6.5 cells were processed in two replicates. These are the accession numbers for files `control rep1` - `SRR935093`, `SRR935094`, `control rep2` - `SRR935095`, `SRR935096` and `TRP 12.5min` - `SRR935119` (rep1), `SRR935120` (rep2). As Arabidopsis thaliana RNAs were used as spike-ins, we also remove reads aligning to Arabidopsis genome. We are using `Mus_musculus.GRCm39.105` genome for mouse and [`GCF_000001735.4`](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001735.4/) for Arabidopsis. Processing scripts for all other datasets used in Mukherjee et al, are present in `processingscripts/` folder on GitHub: TBD.
+We follow the almost the same workflow as detailed in [Nascent RNA Methods](https://github.com/guertinlab/Nascent_RNA_Methods), Smith et al 2021 (PEPPRO) and Scott et al 2022 with following changes:-  
+
+* We align to Arabidopsis genome and collect reads aligning to Arbidopsis (spikeIns) and mouse.
+* The mouse reads are further aligned to mouse ribosome and we remove the ribosomal reads.
+* The remaining reads aligning to mouse are then processed.
+
+We use the following file as our "placeholder" and we replace the `placeholder` within this file by the names of our replicates:-
+
+```{r, engine='bash',  comment=''}
+cat processPRO_seqdata_placeholder_spikeIn.sh
+```
+We can replace the `placeholder` and submit jobs in the following manner (submission example for slurm environment, HPC cluster @ UConn):-
+
+```{r, eval=FALSE}
+for filename in V65_cntrl_rep1 V65_cntrl_rep2 V65_TRP_treat_12min_rep1 V65_TRP_treat_12min_rep2; do
+        sed "s/placeholder/${filename}/g" processPRO_seqdata_placeholder_spikeIn.sh > processPRO_seqdata_${filename}_spikeIn.sh
+        echo ${filename}_spikeIn
+        sbatch processPRO_seqdata_${filename}_spikeIn.sh
+        sleep 1
+done
+```
+## Normalization of sequencing data by their read-depth
+
+We eventually will normalize data by [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html) size factors. For running DESeq2, we plan to use the following criteria:-
+* consider genes with length greater than 50kbp and treat regions from `[TSS + 50kbp]` to `TTS` as unchanging between control and TRP treatment for 12.5 mins. TSS = transcription start site, TTS = transcription termination site.
+* for differential expression analysis by DESeq2, only consider regions between 500 and 25kbp..
+
+We create normalized files in the same manner as mentioned in `PRO_normalization` of [Nascent RNA Methods](https://github.com/guertinlab/Nascent_RNA_Methods) and use `normalize_bedGraph_v2.py` for increased execution speed.
+
+```{r, engine='bash',  comment=''}
+cat normalization_factor.R
+```
+```{r, engine='bash',  comment=''}
+cat PRO_normalization
+```
+We will now use the normalized files from `control` condition - `V65_cntrl_plus_normalized.bigWig` and `V65_cntrl_minus_normalized.bigWig` for estimating the TSS in next section.  
+
+## Estimation of transcription start sites for genes
+
+We will use `primaryTranscriptAnnotation` (Anderson et al. 2020, [GitHub](https://github.com/WarrenDavidAnderson/genomicsRpackage/tree/master/primaryTranscriptAnnotation) ) to estimate TSS and TTS. Comments mention why some thresholds were used:-
+```{r, engine='bash',  comment=''}
+cat createPrimaryTranscAnnot_Mouse_cntThresh_point9.R
+```
+## Running DESeq2 for differential analysis
+
+We will first prepare bed files for "affected genes" (TSS+500 to 25kb) and "internalcontrol genes" (50kbp to TTS) as discussed above.
+```{r, engine='bash',  comment=''}
+cat parsePTACoordsToShortAffectedAndLongControlGenes.R
+```
+```{r, engine='bash',  comment=''}
+cat parsePTACoordsToShortAffectedAndLongControlGenes.R
+```
+We will generate read count data from our processed GRO-seq files and the bed files for "affected" and "internalcontrol" genes created earlier.
+```{r, engine='bash',  comment=''}
+cat deseq2DataCreator_InternalControl_TRP12min.sh
+```
+```{r, engine='bash',  comment=''}
+cat runDeseq2_TRP_12min_matched_internalControl.R
+```
+We get a MA plot showing 9632 genes as repressed.
+```{r, echo=FALSE, fig.cap="MA plot for repressed genes", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("figures/MA_plot_TRP_treat_matched.png")
+```
+We then save the DESeq2 size factors in a tab-separated text file.
+```{r, engine='bash',  comment=''}
+cat saveSizeFactorsAsTxtFile.R
+```
+We use the DESeq2 size factors for normalization. The code is derived from `PRO_normalization_sizeFactor` of [Nascent RNA Methods](https://github.com/guertinlab/Nascent_RNA_Methods)
+```{r, engine='bash',  comment=''}
+cat PRO_normalization_sizeFactor_TRP  
+```
+The processed files are hosted as a [track hub](http://guertinlab.cam.uchc.edu/Jonkers_FP_TRP_hub/hub.txt) which can be loaded in UCSC Genome Browser. A session can be accessed [here](https://genome.ucsc.edu/s/rmukherjee/Jonkers_et_al_mm39_TRP_FP).
+
+## Estimating Pol II densities in pause region and gene body
+We will prepare the pause windows and calculate the densities in gene body regions. We assume all packages mentioned in this file has been installed.
+
+*Removing genes with high variability.* We will also remove genes with high signal variability in their body regions. We will compute body averages in windows of 2000bp in step sizes of 50 bp using `find.density.across.windows(..., start_bp=0, end_bp=15000,windowsize_bp=200, stepsize_bp=50)` and then filter out genes which have body variance/mean >= 0.1.
+
+```{r, engine='bash',  comment=''}
+cat run_pauseworkflow_InternalTRP_matched.R
+```
+We now have desired files - `TRP125min_repressed_control_varlessthanpoint1.txt` and `TRP125min_repressed_treatment_varlessthanpoint1.txt` containing pause sums and body densities of genes of interest. We will use `TRP125min_control_allgenes_varlessthanpoint1.txt` to estimate a full occupancy value for 1 RNAPII in the pause region.
+
+## Saturation values
+
+Note: As discussed in original manuscript (Fig S1, Mukherjee et al), we used pause sum at 90th percentile of data `TRP125min_control_allgenes_varlessthanpoint1.txt` as occupancy value. See section `Running the model`.
+To demonstrate saturation values from fits to hyperbolic tangent function (`Materials & Methods`, Mukherjee et al), we will use `--norm` as `saturation`:
+
+```{r, eval=FALSE}
+polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
+```
+
+The output will look like the following:
+```{r, eval=FALSE}
+checking inputs
+will use 1153.7 as saturation value corresponding to max index 12762 (at percentile 100.0) provided
+saturation fits saved as paramFit_TRP_EntireRange_Saturation/TRP_12.5min_baseline_saturationFit_Yes_logY.pdf
+saturation fits saved as paramFit_TRP_EntireRange_Saturation/TRP_12.5min_baseline_saturationFit_No_logY.pdf
+parameters sets written as paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedParameters.txt
+removed 625 genes from run as they have zero pause sum or body density
+Genes with pause sum or body avg as zero in either condition have been written to paramFit_TRP_EntireRange_Saturation/GeneswithZeroPauseSums_or_BodyAvg.txt
+Received the command:
+polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
+writing command information to paramFit_TRP_EntireRange_Saturation/commandUsed.txt
+Estimated rates saved as paramFit_TRP_EntireRange_Saturation/paramEstimationResults_TRP_12.5min_vs_baseline.txt
+```
+The fitted parameters look like the following:-
+```{r, eval=FALSE}
+head paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedParameters.txt
+rankFitted	percentileRankFitted	A	B	C	saturationVal	percentileOfSaturationVal
+11486	90.0	2.431881136506332	0.0001237883637946522	-0.23589809241576964	157.0	92.56
+12124	95.0	2.6319695245707972	0.00010586476889332477	-0.1976872023523184	271.8	97.48
+12762	100.0	3.1943701718101787	7.667947285209665e-05	-0.13226970355876166	1153.7	99.94
+```
+
+The saturation curve can be derived from 1 to `rankFitted` above, using `A* tanh(Bx) + C`, where 'x' is a placeholder variable for ranks. The maximum saturation value at each of these ranks is `S = A + C`. For plotting different saturation curves, please refer to `Plotting saturation fits` under the section `Miscellaneous Plots`.
+
+NOTE: for datasets created using UMIs, like ZNF143 dTAG (Dong et al 2024), Dexamethasone treatment (Wissink et al 2021), TBP dTAG (Santana et al 2022), `--norm saturation` should be used while invoking `polcomp`.  
+
+# Miscellaneous Plots
+
+Subsections describe plotting functions for various use cases. All subsections show basic plotting code. Users are encouraged to refer to these sections and reuse these code for custom plotting needs.
+
+## Plotting rates
+
+After model run (see `Running the model` and other sections), a file with rates are produced. For instance, in the subsection `Saturation Values`, we generated the file `paramFit_TRP_EntireRange_Saturation/paramEstimationResults_TRP_12.5min_vs_baseline.txt` containing the following columns:-
+```{r, eval=FALSE}
+head paramFit_TRP_EntireRange_Saturation/paramEstimationResults_TRP_12.5min_vs_baseline.txt
+gene	P_normalized_baseline	B_normalized_baseline	P_normalized_TRP_12.5min	B_normalized_TRP_12.5min	B_by_P_baseline	pauseRelease_kelong30_baseline	pauseRelease_kelong45_baseline	pauseRelease_kelong60_baseline	B_by_P_TRP_12.5min	pauseRelease_kelong30_TRP_12.5min	pauseRelease_kelong45_TRP_12.5min	pauseRelease_kelong60_TRP_12.5min	pauseRelease_FC	initiationRate_FC_bound1	initiationRate_FC_bound2	initiationRate_baseline_kelong45_termination_point01	initiationRate_baseline_kelong45_termination_point1	initiationRate_baseline_kelong45_termination_1	initiationRate_TRP_12.5min_kelong45_termination_point01initiationRate_TRP_12.5min_kelong45_termination_point1	initiationRate_TRP_12.5min_kelong45_termination_1
+Tcf24	0.00796888671188262	6.971887730342455e-05	0.003441502030798615	2.1122988763380635e-05	0.00874888548728706	0.2624665646186118	0.39369984692791765	0.5249331292372236	0.006137723753857253	0.1841317126157176	0.2761975689235764	0.3682634252314352	0.7015435009151662	0.43186735553247346	0.30297373653122617	0.003217038345772931	0.003934238149842367	0.011106236190536726	0.0009849495146601148	0.0012946846974319901	0.004392036525150743
+```
+
+The columns `P_normalized_baseline`, `P_normalized_TRP_12.5min` and like wise denote the quantities associated with `baseline` and `TRP_12.5min` conditions, specified in `polcomp` run as `--baselinename` and `--exprname`. To make the column names easily usable, we will transform this file using another helper code.
+
+```{r, engine='bash',  comment=''}
+cat transformRates.R ## changes column names of parameter file to make it more usable
+```
+```{r, eval=FALSE,  comment=''}
+combnResultsFile = "paramFit_TRP_EntireRange_Saturation/paramEstimationResults_TRP_12.5min_vs_baseline.txt"
+transform_rates(combnResultsFile, "baseline", "TRP_12.5min", "TRP_12.5min (repressed)", "TRP_12min_repressed_saturation", 12)
+```
+The created file `calculatedRateData_TRP_12.5min_vs_baseline.rds` contains column names where `baseline` and experiment are denoted generically by `base` and `expr`. We will use this file to plot the rate changes: 
+```{r, eval=FALSE,  comment=''}
+source("generalPlotter.R")
+scanDataFile.entireRange = "paramFit_TRP_EntireRange_Saturation/calculatedRateData_TRP_12.5min_vs_baseline.rds"
+## creates summary for rates per gene
+summary.TRP.entireRange = summaryFunction(readRDS(scanDataFile.entireRange))
+#plots fold change in pause release (krel)
+krelFoldchangePlotter(scanDataFile.entireRange, "TRP_krel_foldchange", "Triptolide (TRP)", "TRP", filetype="pdf", UP=32, DOWN=1/4.5, WIDTH=5, pointALPHA = 0.1)
+#plots fold change in initiation (kinit)
+kinitFCvsPfoldchangePlotter(scanDataFile.entireRange, "TRP_kinit_FC", "Triptolide", "(TRP)", filetype="pdf", directionKinit="down", pointALPHA = 0.1)
+#plots pause release values against elongation rates
+kelongVsKrelPlotter(summary.TRP.entireRange, "Fig_TRP_krel_vs_kelong_minute", "Triptolide (TRP)", "TRP", filetype="pdf")
+```
+The generated plots show Triptolide decreases initiation, and may also result in increase in pause release.
+```{r, echo=FALSE, fig.cap="log2 Fold Change in Pause Relese", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("figures/TRP_krel_foldchange.pdf")
+```
+```{r, echo=FALSE, fig.cap="log2 Fold Change in Initiation", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("figures/TRP_kinit_FC.pdf")
+```
+```{r, echo=FALSE, fig.cap="Pause release rates at different elongation rates", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("figures/Fig_TRP_krel_vs_kelong_minute.pdf")
+```
+
+The `generalPlotter.R` file is present in the vignette folder and is omitted here for brevity.
+
+## Plotting saturation fits
+
+We will use `paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedParameters.txt` created in previous subsection, `Saturation values`.
+
+```{r, eval=FALSE,  comment=''}
+source("residualAndFitPlotter.R")
+paramFileLoc.TRP = "paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedParameters.txt"
+originalPauseSums.TRP =  read.table("TRP125min_control_allgenes_varlessthanpoint1.txt", sep="\t", header=T)
+originalPauseSums.TRP = originalPauseSums.TRP[rank(order(originalPauseSums.TRP$pause_sum)),]
+color.vals = c("#F69994", "#F5807B", "#F26660", "#ED4843", "#E92623")
+fitPlotter_multiplePercentiles("TRP", paramFileLoc.TRP, originalPauseSums.TRP, percentileVals = c(70,80,90,95,100), "LOG_HYPER_TANG", "No", plotTitle = "Triptolide (mESCs, no UMIs)", logYPlotter="Yes", showLegend = "Yes", plotMaxSaturation="Yes", outputDir = "figures/", V_JUST = c(1.2,-0.8, -0.7,-1.1, -1.1), H_JUST=c(rep(0.6,2),rep(0.58,2), 0.545), color.list = color.vals)
+```
+
+The inset shows the legend of fits used (X percentile referring to a fit for pause sums upto Xth percentile.) The dashed lines and the saturation values are indicated with their percentiles (w.r.t the entire data)
+```{r, echo=FALSE, fig.cap="Fits of hyperbolic tangent function to the ranked pause sums", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("figures/TRP_LOG_HYPER_TANG_multiPercentiles_Yes_showLegend_No_logX_Yes_logY_Rplotter.pdf")
+```
+
+The `residualAndFitPlotter.R` file is present in the vignette folder and is omitted here for brevity.
+
+# References
+
+

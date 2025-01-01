@@ -1,0 +1,1 @@
+/home/FCAM/rmukherjee/.local/bin/polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile

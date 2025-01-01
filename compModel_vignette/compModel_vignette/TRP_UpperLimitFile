@@ -1,0 +1,12 @@
+[initiation]
+lower = 0.00000001
+upper = 10
+
+[pauserelease]
+lower = 0.00000001
+upper = 10
+
+[prematuretermination]
+lower = 0.00000001
+upper = 10
+

@@ -1,0 +1,7 @@
+bin*
+compartmentModel.egg-info
+dist*
+lib*
+include*
+pyvenv.cfg
+

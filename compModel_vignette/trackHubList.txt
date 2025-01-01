@@ -1,0 +1,26 @@
+## contains UCSC Genome Browser (https://genome.ucsc.edu/) track hubs for the datasets analysed in Mukherjee et al
+
+## Dong et al, 2024. ZNF143 dTAG in HEK293T cells
+Track: http://guertinlab.cam.uchc.edu/znf143_hub/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/ZNF143_dTAG_trackhub
+
+## Vihervaara et al, 2021. Heat shock in human K562 cells
+Track: http://guertinlab.cam.uchc.edu/Vihervaara_HS_hub/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/Vihervaara_HS_K562
+
+## Duarte et al, 2016. Heat shock in drosophila S2 cells
+Track: http://guertinlab.cam.uchc.edu/Duarte_HS_Drosoph_hub/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/Duarte_Droso_S2_HeatShock
+
+## Jonkers et al, 2014. Triptolide and Flavopiridol in mouse V6.5 cells
+Track:  http://guertinlab.cam.uchc.edu/Jonkers_FP_TRP_hub/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/Jonkers_et_al_mm39_TRP_FP
+
+## Wissink et al, 2021. Dexamethasone treatment in human A549 cells
+Track: http://guertinlab.cam.uchc.edu/ErinWissink_Dex_hub/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/Erin_Wissink_2021_Dex
+
+## Santana et al, 2022. TBP dTAG in HAP9 cells
+Track: http://guertinlab.cam.uchc.edu/TBP_dTAG_Santana/hub.txt
+Session: https://genome.ucsc.edu/s/rmukherjee/Santana_price_TBP_dtagv1_hg38
+
