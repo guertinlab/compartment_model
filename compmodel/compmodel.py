@@ -300,6 +300,7 @@ def check_inputs(basename, basefile, exprname, exprfile, limitfile, allgenesfile
 
 def find_rates(baseline_name, baseline_df, experiment_name, condition_df):
         rateList = []
+        kpre_by_krel = 5
         for index, row in baseline_df.iterrows():
                 gene = row['gene']
                 normP_base = row['pause_sum']
@@ -311,26 +312,31 @@ def find_rates(baseline_name, baseline_df, experiment_name, condition_df):
                 B_by_P_treat = normB_treat / normP_treat 
                 krel_FC = B_by_P_treat / B_by_P_base
                 P_FC = normP_treat/normP_base # kinit FC bound 1
+                kpre = B_by_P_base * 30 * kpre_by_krel ## krel * kpre/krel
                 rates = [gene, normP_base, normB_base, normP_treat, normB_treat, 
-                         B_by_P_base, 30*B_by_P_base, 45*B_by_P_base, 60*B_by_P_base,
-                         B_by_P_treat, 30*B_by_P_treat, 45*B_by_P_treat, 60*B_by_P_treat,
+                         B_by_P_base, 30*B_by_P_base, 
+                         #45*B_by_P_base, 60*B_by_P_base,
+                         B_by_P_treat, 30*B_by_P_treat, 
+                         kpre_by_krel, kpre,
+                         #45*B_by_P_treat, 60*B_by_P_treat,
                          krel_FC, P_FC, P_FC * krel_FC,
-                         normB_base * 45 + 0.01 * normP_base,
-                         normB_base * 45 + 0.1 * normP_base,
-                         normB_base * 45 +  normP_base,
-                         normB_treat * 45 + 0.01 * normP_treat,
-                         normB_treat * 45 + 0.1 * normP_treat,
-                         normB_treat * 45 +  normP_treat
+                         normB_base * 30 + kpre * normP_base,
+                         normB_treat * 30 + kpre * normP_treat,
                          ]
                 rateList.append(rates)
 
         rateDf = pd.DataFrame(rateList, columns = ['gene', 'P_normalized_%s' %(baseline_name), 'B_normalized_%s' %(baseline_name), 
                 'P_normalized_%s' %(experiment_name), 'B_normalized_%s' %(experiment_name),
-                'B_by_P_%s' %(baseline_name), 'pauseRelease_kelong30_%s'%(baseline_name),'pauseRelease_kelong45_%s'%(baseline_name),'pauseRelease_kelong60_%s'%(baseline_name),
-                'B_by_P_%s' %(experiment_name), 'pauseRelease_kelong30_%s'%(experiment_name),'pauseRelease_kelong45_%s'%(experiment_name),'pauseRelease_kelong60_%s'%(experiment_name),
-                "pauseRelease_FC", "initiationRate_FC_bound1", "initiationRate_FC_bound2", 
-                "initiationRate_%s_kelong45_termination_point01" %(baseline_name),"initiationRate_%s_kelong45_termination_point1" %(baseline_name),"initiationRate_%s_kelong45_termination_1" %(baseline_name),
-                "initiationRate_%s_kelong45_termination_point01" %(experiment_name),"initiationRate_%s_kelong45_termination_point1" %(experiment_name),"initiationRate_%s_kelong45_termination_1" %(experiment_name)
+                'B_by_P_%s' %(baseline_name), 'pauseRelease_kelong30_%s'%(baseline_name),
+                #'pauseRelease_kelong45_%s'%(baseline_name),'pauseRelease_kelong60_%s'%(baseline_name),
+                'B_by_P_%s' %(experiment_name), 'pauseRelease_kelong30_%s'%(experiment_name),
+                'PrematureTermination_by_PauseRelease_%s' %(baseline_name), 'PrematureTermination',
+                #'pauseRelease_kelong45_%s'%(experiment_name),'pauseRelease_kelong60_%s'%(experiment_name),
+                "pauseRelease_FC", "initiationRate_FC_bound_P_FC", "initiationRate_FC_bound_B_FC", 
+                "initiationRate_%s_kelong30" %(baseline_name),
+                #"initiationRate_%s_kelong45_termination_point1" %(baseline_name),"initiationRate_%s_kelong45_termination_1" %(baseline_name),
+                "initiationRate_%s_kelong30" %(experiment_name)
+                #"initiationRate_%s_kelong45_termination_point1" %(experiment_name),"initiationRate_%s_kelong45_termination_1" %(experiment_name)
                 ])
         return rateDf
 
@@ -747,7 +753,8 @@ def estparam(basename, basefile, exprname, exprfile, outputdir, conf, allgenesfi
                     pForNormalization = scoreatpercentile(allgenes_df['pause_sum'], percentileval)
                     plotPercentileWithRanks(allgenes_df['pause_sum'], pForNormalization, percentileval,  basename, exprname, outputdir)
                     click.echo('pause sum of %0.2f (at percentile %0.2f) will be used to normalize data' %(pForNormalization, percentileval))
-            else: # norm == 'saturation':
+            else: # norm == 'saturation'
+                     #allgenes_df =  allgenes_df.loc[allgenes_df['pause_sum'] > 0]
                      pForNormalization = saturationValFromHyperTanFunc(allgenes_df['pause_sum'].values, basename, exprname, outputdir, percentileVals)
                      if pForNormalization == -1:
                              sys.exit('saturation curve fit failed. Please check if provided data has reasonable number of genes and densities are computed properly. You can alternatively use `--norm=percentile` for calculating a pause sum for normalization. Please see --help menu or vignette.')
