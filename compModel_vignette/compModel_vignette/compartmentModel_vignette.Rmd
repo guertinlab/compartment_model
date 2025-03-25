@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-# Introduction 
+# Introduction
 
 This document describes steps to run compartment model (Mukherjee et al) on nascent transcript datasets to estimate changes in pause release and initiation. 
 
