@@ -26,10 +26,10 @@ This document describes steps to run compartment model (Mukherjee et al) on nasc
 ## Installing the package
 
 Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. 
-We will install a python based package, `compartmentModel` currently hosted on [Test PyPI](https://test.pypi.org/project/compartmentModel/):-
+We will install a python based package, `compartmentModel` currently hosted on [PyPI](https://pypi.org/project/compartmentModel/):-
 
 ```{r, eval=FALSE}
-python3 -m pip install -i https://test.pypi.org/simple compartmentModel
+python3 -m pip install compartmentModel
 ```
 
 After successful installation, the help menu can be accessed by running the following on command line:-
