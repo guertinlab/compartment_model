@@ -60,7 +60,7 @@ cat TRP_UpperLimitFile
 Note: In similar manner, the upper limit can be changed for any parameter by specifying `upper` value for the desired paramter, say premature termination rate. This is for demonstration and not being used in this section.:-
 ```{r, eval=FALSE}
 [prematuretermination]
-lower = 0.02
+lower = 0.01
 upper = 0.023
 ```
 We will run the following command:-
