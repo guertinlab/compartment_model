@@ -29,6 +29,9 @@ Note: This section assumes that user already has genes of interest with their pa
 We will install a python based package, `compartmentModel` currently hosted on [PyPI](https://pypi.org/project/compartmentModel/):-
 
 ```{r, eval=FALSE}
+cd /path/to/your/directory
+python3 -m venv
+source venv/activate
 python3 -m pip install compartmentModel
 ```
 
