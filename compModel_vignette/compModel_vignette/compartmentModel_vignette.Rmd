@@ -25,7 +25,7 @@ This document describes steps to run compartment model (Mukherjee & Guertin, 202
 
 ## Installing the package
 
-Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. All input files used below are present in the [Github directory] (https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
+Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. All input files used below are present in the [Github directory](https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
 We will install a python based package, `compartmentModel` currently hosted on [PyPI](https://pypi.org/project/compartmentModel/):-
 
 ```{r, eval=FALSE}
