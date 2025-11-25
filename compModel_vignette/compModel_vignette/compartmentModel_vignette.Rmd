@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 ```
 # Introduction
 
-This document describes steps to run compartment model (Mukherjee & Guertin, 2025) on nascent transcript datasets to estimate changes in pause release and initiation. We also note that model equations (Mukherjee & Guertin, 2025) provide direct estimates of changes in pause release and initiation. 
+This document describes steps to run compartment model (Mukherjee & Guertin, 2025) on nascent transcript datasets to estimate changes in pause release and initiation. The model equations (Mukherjee & Guertin, 2025) provide direct estimates of changes in pause release and initiation. 
 
 # Getting Started
 
