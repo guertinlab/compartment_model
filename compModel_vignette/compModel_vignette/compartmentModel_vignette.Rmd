@@ -1,5 +1,5 @@
 ---
-title: "compartment-model-vignette"
+title: "Compartment Model vignette"
 output: rmarkdown::html_vignette
 bibliography: references.bib  
 csl: biomed-central.csl
@@ -17,19 +17,22 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-# Introduction 
+# Introduction
 
-This document describes steps to run compartment model (Mukherjee et al) on nascent transcript datasets to estimate changes in pause release and initiation. 
+This document describes steps to run compartment model (Mukherjee & Guertin, 2025) on nascent transcript datasets to estimate changes in pause release and initiation. The model equations (Mukherjee & Guertin, 2025) provide direct estimates of changes in pause release and initiation. 
 
 # Getting Started
 
 ## Installing the package
 
-Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. 
-We will install a python based package, `compartmentModel` currently hosted on [Test PyPI](https://test.pypi.org/project/compartmentModel/):-
+Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. All input files used below are present in the [Github directory] (https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
+We will install a python based package, `compartmentModel` currently hosted on [PyPI](https://pypi.org/project/compartmentModel/):-
 
 ```{r, eval=FALSE}
-python3 -m pip install -i https://test.pypi.org/simple compartmentModel
+cd /path/to/your/directory
+python3 -m venv
+source venv/activate
+python3 -m pip install compartmentModel
 ```
 
 After successful installation, the help menu can be accessed by running the following on command line:-
@@ -60,7 +63,7 @@ cat TRP_UpperLimitFile
 Note: In similar manner, the upper limit can be changed for any parameter by specifying `upper` value for the desired paramter, say premature termination rate. This is for demonstration and not being used in this section.:-
 ```{r, eval=FALSE}
 [prematuretermination]
-lower = 0.02
+lower = 0.01
 upper = 0.023
 ```
 We will run the following command:-
@@ -81,7 +84,7 @@ The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contain all
 ```{r, engine='bash',  comment=''}
 head paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
-A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying/summarising the parameter sets mentioned in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
+A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying and summarising the parameter sets mentioned in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
 
 # Preparation of Inputs
 

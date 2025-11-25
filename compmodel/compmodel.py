@@ -1,9 +1,11 @@
-import click, sys, os, psutil, multiprocessing
-from basico import *
+import click, sys, os
+import numpy as np
+# import psutil, multiprocessing
+#from basico import *
 import pandas as pd
 import configparser
-from basico.callbacks import create_default_handler
-from multiprocessing import get_context, set_start_method
+#from basico.callbacks import create_default_handler
+#from multiprocessing import get_context, set_start_method
 from scipy.stats import scoreatpercentile, percentileofscore
 import scipy.optimize
 import matplotlib.pyplot as plt
@@ -341,7 +343,7 @@ def find_rates(baseline_name, baseline_df, experiment_name, condition_df):
         return rateDf
 
 
-## NOTE: THIS FUNCTION WILL BE CALLED IN PARALLEL USING THE `MULTIPROCESSING` MODULE.   
+## NOTE: THIS FUNCTION  was part of basico WILL BE CALLED IN PARALLEL USING THE `MULTIPROCESSING` MODULE.   
 #def execute_model(baseline_name, baseline_df, experiment_name, condition_df, index_df, Ngene, nscan, algo, thresh, kinit_limits, kelong_limits, krel_limits, kpre_limits, outputdir, geneInfo_dir, geneConstraint=False, geneConstraintObj={}):
 def execute_model(baseline_name, baseline_df, experiment_name, condition_df, index_df, nscan, algo, kinit_limits, kelong_limits, krel_limits, kpre_limits, pauseMax, outputdir, geneInfo_dir):
     #click.echo('creating model for genes from index %d to %d' % (index_df, index_df + Ngene - 1))
