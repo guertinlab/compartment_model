@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
      name = 'compartmentModel',
-     version='1.01',
+     version='1.12',
      license='MIT',
      description='A command line utility to estimate parameters for Compartment Model. For more details see documentation and Dutta et al, Gen Res, 2023.',
      long_description=long_description,

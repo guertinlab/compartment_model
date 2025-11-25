@@ -2,9 +2,23 @@
 
 A command line utility to estimate parameters for Compartment Model. For more details, please refer to documentation and Dutta et al, Gen Res, 2023
 
-Vignette: compartment_model/compModel_vignette/compModel_vignette/compartmentModel_vignette.html
+Installation steps:
+- cd /path/to/yourdirectory
+- python3 -m venv
+- source venv/activate
+- python3 -m pip install compartmentModel
 
-UCSC Genome Browser track hubs: compartment_model/compModel_vignette/trackHubList.txt
+Quick start/user guide: 
+
+Vignette: https://guertinlab.github.io/compartment_model/compModel_vignette/compModel_vignette/compartmentModel_vignette.html
 
 Package: https://pypi.org/project/compartmentModel/
+ 
+
+Package building:
+- python3 -m pip install build 
+- python3 -m build
+- python3 -m pip install twine
+- python3 -m twine check dist/* 
+- python3 -m twine upload -r pypi dist/*
 
