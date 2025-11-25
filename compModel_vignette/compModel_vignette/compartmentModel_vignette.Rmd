@@ -1,5 +1,5 @@
 ---
-title: "compartment-model-vignette"
+title: "Compartment model vignette"
 output: rmarkdown::html_vignette
 bibliography: references.bib  
 csl: biomed-central.csl
