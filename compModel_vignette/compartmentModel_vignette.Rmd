@@ -25,17 +25,20 @@ This document describes steps to run compartment model (Mukherjee & Guertin, 202
 
 ## Installing the package
 
-Note: This section assumes that user already has genes of interest with their pause sums and body densities. Please refer to section `Preparation of Inputs` for creation of these input files. All input files used below are present in the [Github directory](https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
 We will install a python based package, `compartmentModel` currently hosted on [PyPI](https://pypi.org/project/compartmentModel/):-
+
+For direct install:
+```{r, eval=FALSE}
+pip install compartmentModel
+```
 
 We use virtual environment `venv` (recommended), but direct installation is also possible without setting up a `venv`:-
 ```{r, eval=FALSE}
 cd /path/to/your/directory
-python3 -m venv myenv # name of the environment
-source myenv/bin/activate # activate the environment
+python3 -m venv compModelEnv # name of the environment
+source compModelEnv/bin/activate # activate the environment
 python3 -m pip install compartmentModel # can directly install, without running `venv` steps above
 ```
-
 After successful installation, the help menu can be accessed by running the following on command line:-
 ```{r, eval=FALSE}
 polcomp estparam --help
@@ -43,13 +46,21 @@ polcomp estparam --help
 
 ## Inputs to the compartment model
 
-We need two tab-separated files from each of control and treatment conditions containing 'gene', 'pause_sum', 'body_density' for all genes of our interest. We also need a file containing pause sums of all expressed genes in baseline, in order to estimate an occupancy value (see Mukherjee et al). Please refer to the section `Preparation of Inputs` for detailed overview of creation of these files. For this example, we will use two files prepared from Triptolide treatment data (Jonkers et al. 2014):-
+The test files in this section belong to Triptolide dataset (12.5 mins).
+
+* control data, `testData_TRP12min_control.txt`: raw file [link](linktoadd).
+* treatment data, `testData_TRP12min_control.txt` : raw file [link](linktoadd).
+* control all genes data for, `testData_TRP12min_All_control_genes.txt`: raw file [link](linktoadd).
+
+Please refer to section `Preparation of Inputs` for creation of these input files. All input files are also present in the [Github directory](https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
+
+We need two tab-separated files from each of control and treatment conditions containing 'gene', 'pause_sum', 'body_density' for all genes of our interest. We also need a file containing pause sums of all expressed genes in baseline, in order to estimate an occupancy value (see Mukherjee & Guertin, 2025). Please refer to the section `Preparation of Inputs` for detailed overview of creation of these files. For this example, we will use two files prepared from Triptolide treatment data (Jonkers et al. 2014):-
 
 ```{r, engine='bash',  comment=''}
-head TRP125min_repressed_control_varlessthanpoint1.txt
+head testData_TRP12min_control.txt
 ```
 ```{r, engine='bash',  comment=''}
-head TRP125min_repressed_treatment_varlessthanpoint1.txt
+head testData_TRP12min_treatment.txt
 ```
 ## Running the model
 
@@ -69,14 +80,14 @@ upper = 0.023
 ```
 We will run the following command:-
 ```{r, eval=FALSE}
-polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
+polcomp estparam --basename baseline --basefile testData_TRP12min_control.txt --exprname TRP_12.5min --exprfile testData_TRP12min_treatment.txt --allgenesfile testData_TRP12min_All_control_genes.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
 ```
 At the end of the run, it should produce the following output (last few lines mentioned):-
 ```{r, eval=FALSE}
 removed 625 genes from run as they have zero pause sum or body density
 Genes with pause sum or body avg as zero in either condition have been written to paramFit_TRP_EntireRange_percentile/GeneswithZeroPauseSums_or_BodyAvg.txt
 Received the command:
-polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
+polcomp estparam --basename baseline --basefile testData_TRP12min_control.txt --exprname TRP_12.5min --exprfile testData_TRP12min_treatment.txt --allgenesfile testData_TRP12min_All_control_genes.txt --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_percentile
 writing command information to paramFit_TRP_EntireRange_percentile/commandUsed.txt
 > Estimated rates saved as paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
@@ -172,15 +183,15 @@ We will prepare the pause windows and calculate the densities in gene body regio
 ```{r, engine='bash',  comment=''}
 cat run_pauseworkflow_InternalTRP_matched.R
 ```
-We now have desired files - `TRP125min_repressed_control_varlessthanpoint1.txt` and `TRP125min_repressed_treatment_varlessthanpoint1.txt` containing pause sums and body densities of genes of interest. We will use `TRP125min_control_allgenes_varlessthanpoint1.txt` to estimate a full occupancy value for 1 RNAPII in the pause region.
+We now have desired files - `testData_TRP12min_control.txt` and `testData_TRP12min_treatment.txt` containing pause sums and body densities of genes of interest. We will use `testData_TRP12min_All_control_genes.txt` to estimate a full occupancy value for 1 RNAPII in the pause region.
 
 ## Saturation values
 
-Note: As discussed in original manuscript (Fig S1, Mukherjee et al), we used pause sum at 90th percentile of data `TRP125min_control_allgenes_varlessthanpoint1.txt` as occupancy value. See section `Running the model`.
+Note: As discussed in original manuscript (Fig S1, Mukherjee et al), we used pause sum at 90th percentile of data `testData_TRP12min_All_control_genes.txt` as occupancy value. See section `Running the model`.
 To demonstrate saturation values from fits to hyperbolic tangent function (`Materials & Methods`, Mukherjee et al), we will use `--norm` as `saturation`:
 
 ```{r, eval=FALSE}
-polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
+polcomp estparam --basename baseline --basefile testData_TRP12min_control.txt --exprname TRP_12.5min --exprfile testData_TRP12min_treatment.txt --allgenesfile testData_TRP12min_All_control_genes.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
 ```
 
 The output will look like the following:
@@ -193,7 +204,7 @@ parameters sets written as paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_ba
 removed 625 genes from run as they have zero pause sum or body density
 Genes with pause sum or body avg as zero in either condition have been written to paramFit_TRP_EntireRange_Saturation/GeneswithZeroPauseSums_or_BodyAvg.txt
 Received the command:
-polcomp estparam --basename baseline --basefile TRP125min_repressed_control_varlessthanpoint1.txt --exprname TRP_12.5min --exprfile TRP125min_repressed_treatment_varlessthanpoint1.txt --allgenesfile TRP125min_control_allgenes_varlessthanpoint1.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
+polcomp estparam --basename baseline --basefile testData_TRP12min_control.txt --exprname TRP_12.5min --exprfile testData_TRP12min_treatment.txt --allgenesfile testData_TRP12min_All_control_genes.txt --norm saturation --conf TRP_UpperLimitFile --outputdir paramFit_TRP_EntireRange_Saturation
 writing command information to paramFit_TRP_EntireRange_Saturation/commandUsed.txt
 Estimated rates saved as paramFit_TRP_EntireRange_Saturation/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
@@ -265,7 +276,7 @@ We will use `paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedP
 ```{r, eval=FALSE,  comment=''}
 source("residualAndFitPlotter.R")
 paramFileLoc.TRP = "paramFit_TRP_EntireRange_Saturation/TRP_12.5min_vs_baseline_fittedParameters.txt"
-originalPauseSums.TRP =  read.table("TRP125min_control_allgenes_varlessthanpoint1.txt", sep="\t", header=T)
+originalPauseSums.TRP =  read.table("testData_TRP12min_All_control_genes.txt", sep="\t", header=T)
 originalPauseSums.TRP = originalPauseSums.TRP[rank(order(originalPauseSums.TRP$pause_sum)),]
 color.vals = c("#F69994", "#F5807B", "#F26660", "#ED4843", "#E92623")
 fitPlotter_multiplePercentiles("TRP", paramFileLoc.TRP, originalPauseSums.TRP, percentileVals = c(70,80,90,95,100), "LOG_HYPER_TANG", "No", plotTitle = "Triptolide (mESCs, no UMIs)", logYPlotter="Yes", showLegend = "Yes", plotMaxSaturation="Yes", outputDir = "figures/", V_JUST = c(1.2,-0.8, -0.7,-1.1, -1.1), H_JUST=c(rep(0.6,2),rep(0.58,2), 0.545), color.list = color.vals)
