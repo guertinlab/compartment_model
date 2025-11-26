@@ -50,7 +50,7 @@ The test files in this section belong to Triptolide dataset (12.5 mins).
 
 * control data, `testData_TRP12min_control.txt`: raw file [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_control.txt).
 * treatment data, `testData_TRP12min_control.txt` : raw file [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_treatment.txt).
-* control all genes data for, `testData_TRP12min_All_control_genes.txt`: raw file [link](https://github.com/guertinlab/compartment_model/blob/main/compModel_vignette/testData_TRP12min_All_control_genes.txt).
+* control all genes data for, `testData_TRP12min_All_control_genes.txt`: raw file [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_All_control_genes.txt).
 
 Please refer to section `Preparation of Inputs` for creation of these input files. All input files are also present in the [Github directory](https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
 
