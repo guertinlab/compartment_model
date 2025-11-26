@@ -10,7 +10,7 @@ Installation steps (virtual environment `venv` not needed but recommended):
 
 Quick start/user guide: 
 
-Vignette: https://guertinlab.github.io/compartment_model/compModel_vignette/compModel_vignette/compartmentModel_vignette.html
+Vignette: https://guertinlab.github.io/compartment_model/compModel_vignette/compartmentModel_vignette.html
 
 Package: https://pypi.org/project/compartmentModel/
  
