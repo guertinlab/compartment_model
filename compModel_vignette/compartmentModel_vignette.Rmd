@@ -92,11 +92,11 @@ writing command information to paramFit_TRP_EntireRange_percentile/commandUsed.t
 > Estimated rates saved as paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
 
-The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contains normalized pause and body densities for all the genes, along with different rates that can be calculated using these normalized values (see Mukherjee & Guertin, 2025 for equations). The column names are self-explanatory:-
+The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contains normalized pause and body densities for all the genes, along with different rates that can be calculated using these normalized values (see Mukherjee & Guertin, 2025 for equations). The number suffixes to `kelong` columns denote elongation speed in bp/seconds :-
 ```{r, engine='bash',  comment=''}
-head paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
+head -n4 paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
-A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying data in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
+A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying data in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee & Guertin, 2025).  Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
 
 # Preparation of Inputs
 

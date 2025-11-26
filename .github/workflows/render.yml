@@ -2,7 +2,7 @@ name: Render Rmd to HTML
 on:
   push:
     paths:
-      - 'compModel_vignette/compModel_vignette/compartmentModel_vignette.Rmd'
+      - 'compModel_vignette/compartmentModel_vignette.Rmd'
 jobs:
   build:
     runs-on: macOS-latest
