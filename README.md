@@ -2,10 +2,12 @@
 
 A command line utility to estimate parameters for Compartment Model. For more details, please refer to documentation and Dutta et al, Gen Res, 2023
 
+Direct install: `pip install compartmentModel`.
+
 Installation steps (virtual environment `venv` not needed but recommended):
 - cd /path/to/your/directory
-- python3 -m venv myenv ## create your environment
-- source myenv/bin/activate ## activate your environment
+- python3 -m venv compModelEnv ## create your environment
+- source compModelEnv/bin/activate ## activate your environment
 - python3 -m pip install compartmentModel ## can directly install this without venv steps above
 
 Quick start/user guide: 
