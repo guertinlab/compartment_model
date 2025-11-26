@@ -48,9 +48,9 @@ polcomp estparam --help
 
 The test files in this section belong to Triptolide dataset (12.5 mins).
 
-* control data, `testData_TRP12min_control.txt`: raw file [link](linktoadd).
-* treatment data, `testData_TRP12min_control.txt` : raw file [link](linktoadd).
-* control all genes data for, `testData_TRP12min_All_control_genes.txt`: raw file [link](linktoadd).
+* control data, `testData_TRP12min_control.txt`: raw file [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_control.txt).
+* treatment data, `testData_TRP12min_control.txt` : raw file [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_treatment.txt).
+* control all genes data for, `testData_TRP12min_All_control_genes.txt`: raw file [link](https://github.com/guertinlab/compartment_model/blob/main/compModel_vignette/testData_TRP12min_All_control_genes.txt).
 
 Please refer to section `Preparation of Inputs` for creation of these input files. All input files are also present in the [Github directory](https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette). 
 
@@ -92,11 +92,11 @@ writing command information to paramFit_TRP_EntireRange_percentile/commandUsed.t
 > Estimated rates saved as paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
 
-The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contain all the valid parameter sets for all the genes. The column names are self-explanatory and depend on the `basename` and `exprname` mentioned in the input command:-
+The output file `paramEstimationResults_TRP_12.5min_vs_baseline.txt` contains normalized pause and body densities for all the genes, along with different rates that can be calculated using these normalized values (see Mukherjee & Guertin, 2025 for equations). The column names are self-explanatory:-
 ```{r, engine='bash',  comment=''}
 head paramFit_TRP_EntireRange_percentile/paramEstimationResults_TRP_12.5min_vs_baseline.txt
 ```
-A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying and summarising the parameter sets mentioned in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
+A way to display the parameter results is mentioned in the section `Plotting Rates`. The user may use custom functions for displaying data in `paramEstimationResults_TRP_12.5min_vs_baseline.txt`. `_normalized_` in column names refers to transformed pause and body densities to occupancy values (as mentioned in Mukherjee et al). Please refer to section, `Saturation values` where running `polcomp` with `--norm saturation` is discussed.
 
 # Preparation of Inputs
 
