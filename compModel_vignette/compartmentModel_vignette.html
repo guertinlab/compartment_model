@@ -782,7 +782,7 @@ python3 -m pip install compartmentModel # can directly install, without running 
 <li>treatment data, <code>testData_TRP12min_control.txt</code> : raw file <a href="https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_treatment.txt">link</a>.</li>
 <li>control all genes data for, <code>testData_TRP12min_All_control_genes.txt</code>: raw file <a href="https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/testData_TRP12min_All_control_genes.txt">link</a>.</li>
 </ul>
-<p>Please refer to section <code>Preparation of Inputs</code> for creation of these input files. All input files are also present in the <a href="https://github.com/guertinlab/compartment_model/tree/master/compModel_vignette/compModel_vignette">Github directory</a>.</p>
+<p>Please refer to section <code>Preparation of Inputs</code> for creation of these input files. All input files are also present in the <a href="https://github.com/guertinlab/compartment_model/tree/main/compModel_vignette">Github directory</a>.</p>
 <p>We need two tab-separated files from each of control and treatment conditions containing ‘gene’, ‘pause_sum’, ‘body_density’ for all genes of our interest. We also need a file containing pause sums of all expressed genes in baseline, in order to estimate an occupancy value (see Mukherjee &amp; Guertin, 2025). Please refer to the section <code>Preparation of Inputs</code> for detailed overview of creation of these files. For this example, we will use two files prepared from Triptolide treatment data (Jonkers et al. 2014):-</p>
 <pre class="bash"><code>head testData_TRP12min_control.txt
 gene    pause_sum   body_density
@@ -809,7 +809,7 @@ Vps4b   81.6698702573776    0.0313645508928707</code></pre>
 </div>
 <div id="running-the-model" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Running the model</h2>
-<p>We will specify the inputs to our model as mentioned in the help <a href="message:-" class="uri">message:-</a></p>
+<p>We will specify the inputs to our model as mentioned in the help message :</p>
 <pre class="r"><code>polcomp estparam --help</code></pre>
 <p>By default for parameter estimation, the lower and higher limits for premature termination (<code>Kpre</code>), pause release (<code>Krel</code>), initiation (<code>Kinit</code>) rates are 0.01 and 1 respectively, whereas lower and upper limits for elongation (<code>Kelong</code>) are 30 and 60. To demonstrate that these limits can be changed, we will use a config file to change the lower limit to <code>1e-8</code>.</p>
 <pre class="bash"><code>cat TRP_UpperLimitFile
