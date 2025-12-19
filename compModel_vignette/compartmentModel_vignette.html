@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2025-12-01" />
+<meta name="date" content="2025-12-19" />
 
 <title>Compartment Model vignette</title>
 
@@ -723,7 +723,7 @@ function toggle_visibility(id1) {
 
 
 <h1 class="title toc-ignore">Compartment Model vignette</h1>
-<h4 class="date">1 December 2025</h4>
+<h4 class="date">19 December 2025</h4>
 
 </div>
 
@@ -751,6 +751,7 @@ function toggle_visibility(id1) {
 <li><a href="#plotting-rates" id="toc-plotting-rates"><span class="toc-section-number">4.1</span> Plotting rates</a></li>
 <li><a href="#plotting-saturation-fits" id="toc-plotting-saturation-fits"><span class="toc-section-number">4.2</span> Plotting saturation fits</a></li>
 </ul></li>
+<li><a href="#generating-all-figures-in-the-manuscript" id="toc-generating-all-figures-in-the-manuscript"><span class="toc-section-number">5</span> Generating all figures in the manuscript</a></li>
 <li><a href="#references" id="toc-references">References</a></li>
 </ul>
 </div>
@@ -1005,7 +1006,7 @@ mv ${name}_tmp.txt ${name}_not_scaled.bed
 # run seqoutBias on aThaliana bam
 ${seqBiasDir}/seqOutBias scale ${aThalianaTable} ${name}_${UMI_length}_aThaliana.bam --no-scale --stranded --bed-stranded-positive \
                     --bw=${name}_aThaliana.bigWig --bed=${name}_aThaliana.bed \
-            --tail-edge --read-size=${read_size} --tallymer=${aThalianaTallymer}
+             --read-size=${read_size} --tallymer=${aThalianaTallymer}
 
 sort -k1,1 -k2,2n ${name}_aThaliana_not_scaled.bed &gt; ${name}_pause_counts_tmp.bed
 mv ${name}_pause_counts_tmp.bed ${name}_aThaliana_not_scaled.bed
@@ -2049,6 +2050,10 @@ Figure 5: <span class="caption-title">Fits of hyperbolic tangent function to the
 </div>
 <p>The <code>residualAndFitPlotter.R</code> file is present in the vignette folder and is omitted here for brevity.</p>
 </div>
+</div>
+<div id="generating-all-figures-in-the-manuscript" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Generating all figures in the manuscript</h1>
+<p>A long file <code>generateAllFigures.R</code> has the source code to generate figures in manuscript Mukherjee &amp; Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
