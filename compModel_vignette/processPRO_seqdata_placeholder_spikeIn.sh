@@ -144,7 +144,7 @@ mv ${name}_tmp.txt ${name}_not_scaled.bed
 # run seqoutBias on aThaliana bam
 ${seqBiasDir}/seqOutBias scale ${aThalianaTable} ${name}_${UMI_length}_aThaliana.bam --no-scale --stranded --bed-stranded-positive \
 	                --bw=${name}_aThaliana.bigWig --bed=${name}_aThaliana.bed \
-			--tail-edge --read-size=${read_size} --tallymer=${aThalianaTallymer}
+			 --read-size=${read_size} --tallymer=${aThalianaTallymer}
 
 sort -k1,1 -k2,2n ${name}_aThaliana_not_scaled.bed > ${name}_pause_counts_tmp.bed
 mv ${name}_pause_counts_tmp.bed ${name}_aThaliana_not_scaled.bed

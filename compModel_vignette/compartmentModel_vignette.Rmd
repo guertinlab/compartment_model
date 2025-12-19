@@ -289,6 +289,10 @@ knitr::include_graphics("figures/TRP_LOG_HYPER_TANG_multiPercentiles_Yes_showLeg
 
 The `residualAndFitPlotter.R` file is present in the vignette folder and is omitted here for brevity.
 
+# Generating all figures in the manuscript 
+
+A long file `generateAllFigures.R` has the source code to generate figures in manuscript Mukherjee & Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.
+
 # References
 
 
