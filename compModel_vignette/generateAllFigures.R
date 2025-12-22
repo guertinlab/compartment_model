@@ -1,3 +1,10 @@
+source("/Users/rudradeepmukherjee/Documents/UConn Health/comparment.model.project/Figures_manuscript/generalPlotter.R")
+
+## please generate this data using the steps mentioned in the vignette - these steps are long, so omitted here for brevity
+scanDataFile.entireRange = "/Users/rudradeepmukherjee/Documents/UConn Health/comparment.model.project/datasets, genome/Jonkers_2014_Trp_FP_paper/ParamEstimation_FP_TRP/paramFit_TRP_5kb_body_percentile/calculatedRateData_TRP_125min_repressed.rds"
+summmary.TRP.entireRange = summaryFunction(readRDS(scanDataFile.entireRange))
+summmary.TRP.entireRange$datasetName = "Triptolide (TRP)"
+
 ## Figure 2
 summmary.TRP.entireRange$datasetName = "Triptolide (TRP)"
 quantile(summmary.TRP.entireRange$B_FC/ summmary.TRP.entireRange$P_FC, probs = c(0.1,0.5,0.9))

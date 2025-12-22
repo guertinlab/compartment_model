@@ -267,7 +267,7 @@ knitr::include_graphics("figures/TRP_kinit_FC.pdf")
 knitr::include_graphics("figures/Fig_TRP_krel_vs_kelong_minute.pdf")
 ```
 
-The `generalPlotter.R` file is present in the vignette folder and is omitted here for brevity.
+The `generalPlotter.R` file - [link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/generalPlotter.R)  is present in the vignette folder and is omitted here for brevity.
 
 ## Plotting saturation fits
 
@@ -291,7 +291,7 @@ The `residualAndFitPlotter.R` file is present in the vignette folder and is omit
 
 # Generating all figures in the manuscript 
 
-A long file `generateAllFigures.R` has the source code to generate figures in manuscript Mukherjee & Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.
+A long file `generateAllFigures.R` - [Link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/generateAllFigures.R) has the source code to generate figures in manuscript Mukherjee & Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.
 
 # References
 
