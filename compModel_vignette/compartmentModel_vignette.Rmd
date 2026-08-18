@@ -291,7 +291,7 @@ The `residualAndFitPlotter.R` file is present in the vignette folder and is omit
 
 # Generating all figures in the manuscript 
 
-A long file `generateAllFigures.R` - [Link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/generateAllFigures.R) has the source code to generate figures in manuscript Mukherjee & Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.
+The file `generateAllFigures.R` - [Link](https://raw.githubusercontent.com/guertinlab/compartment_model/refs/heads/main/compModel_vignette/generateAllFigures.R) has the source code to generate figures in manuscript Mukherjee & Guertin, 2025. It is located in the vignette folder, and the contents are omitted for brevity.
 
 # References
 
