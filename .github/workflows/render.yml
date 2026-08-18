@@ -27,6 +27,5 @@ jobs:
         run: |
           git add compModel_vignette/compartmentModel_vignette.html
           git commit -m "Render compartmentModel_vignette.Rmd to HTML"
-          git pull 
           git push origin main
 
