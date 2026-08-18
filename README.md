@@ -21,6 +21,6 @@ Package building (in case you are downloading/cloning the entire package source 
 - python3 -m pip install build 
 - python3 -m build
 - python3 -m pip install twine
-- python3 -m twine check dist/* 
+- python3 -m twine check dist/* (in case of error, please search for error message. Should get fixed by updating twine) 
 - python3 -m twine upload -r pypi dist/*
 
